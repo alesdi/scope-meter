@@ -3,6 +3,8 @@
 	import Autocomplete from "@smui-extra/autocomplete";
 	import Button, { Icon, Label } from "@smui/button";
 	import Card, { Content } from "@smui/card";
+	import Chip, { Set, Text } from "@smui/chips";
+	import Select, { Option } from "@smui/select";
 	import Textfield from "@smui/textfield";
 	import { onMount } from "svelte";
 	import {
@@ -10,6 +12,7 @@
 		ScopeBoxRunState,
 		ScopeBoxState,
 	} from "./ScopeBoxState";
+	import { SimpleRectangleTool, TimeConstantTool, Tool } from "./tools";
 
 	let xDivImageSize: number | null = null;
 	let yDivImageSize: number | null = null;
@@ -17,6 +20,11 @@
 	let xDivPhysicalUnit: string | null = "";
 	let yDivPhysicalScale: number | null = null;
 	let yDivPhysicalUnit: string | null = "";
+
+	let toolSelection: {
+		label: string;
+		tool: Tool;
+	};
 
 	scopeSetup.subscribe((value) => {
 		console.log("scopeSetup loaded");
@@ -31,22 +39,30 @@
 		}
 	});
 
-	$: scopeSetup.set({
-		xDivImageSize: xDivImageSize,
-		yDivImageSize: yDivImageSize,
-		xDivPhysicalScale: xDivPhysicalScale,
-		xDivPhysicalUnit: xDivPhysicalUnit,
-		yDivPhysicalScale: yDivPhysicalScale,
-		yDivPhysicalUnit: yDivPhysicalUnit,
-	});
+	$: {
+		scopeSetup.set({
+			xDivImageSize: xDivImageSize,
+			yDivImageSize: yDivImageSize,
+			xDivPhysicalScale: xDivPhysicalScale,
+			xDivPhysicalUnit: xDivPhysicalUnit,
+			yDivPhysicalScale: yDivPhysicalScale,
+			yDivPhysicalUnit: yDivPhysicalUnit,
+		});
+
+		if (state) {
+			state.scopeSetup = {
+				xDivImageSize: xDivImageSize,
+				yDivImageSize: yDivImageSize,
+				xDivPhysicalScale: xDivPhysicalScale,
+				xDivPhysicalUnit: xDivPhysicalUnit,
+				yDivPhysicalScale: yDivPhysicalScale,
+				yDivPhysicalUnit: yDivPhysicalUnit,
+			};
+		}
+	}
 
 	$: if (state) {
-		state.xDivImageSize = xDivImageSize;
-		state.yDivImageSize = yDivImageSize;
-		state.xDivPhysicalScale = xDivPhysicalScale;
-		state.xDivPhysicalUnit = xDivPhysicalUnit;
-		state.yDivPhysicalScale = yDivPhysicalScale;
-		state.yDivPhysicalUnit = yDivPhysicalUnit;
+		state.tool = toolSelection.tool;
 	}
 
 	let canvas: HTMLCanvasElement;
@@ -61,20 +77,12 @@
 		(state as ScopeBoxRunState)?.selectDivisionRectangle();
 	}
 
-	function handleFileSelected(file: File) {
-		if (state instanceof ScopeBoxImagePickState) {
-			state.loadFile(file);
-		} else if (state instanceof ScopeBoxRunState) {
-			state.swapFile(file);
-		}
-	}
-
 	onMount(async () => {
 		state = new ScopeBoxImagePickState({
 			transition: onStateTransition,
 			updateDivisionSetup: ({ x, y }: { x: number; y: number }) => {
-				xDivImageSize = x;
-				yDivImageSize = y;
+				xDivImageSize = Math.round(x);
+				yDivImageSize = Math.round(y);
 			},
 			canvas: canvas,
 		});
@@ -91,6 +99,11 @@
 	const autofillYUnits = siYUnits
 		.map((unit) => siPrefixes.map((prefix) => prefix + unit))
 		.flat();
+
+	const toolSelections = [
+		{ label: "Simple rectangle", tool: new SimpleRectangleTool() },
+		{ label: "Time constant", tool: new TimeConstantTool() },
+	];
 </script>
 
 <div id="scope-box">
@@ -107,6 +120,39 @@
 </div>
 
 <div id="division-setup">
+	<div class="division-setup-card">
+		<Card style="height: 100%">
+			<Content>
+				<h2>Tool options</h2>
+				<Select
+					variant="filled"
+					label="Tool"
+					style="width: 100%"
+					bind:value={toolSelection}
+					key={(toolSelection) =>
+						`${(toolSelection && toolSelection.label) || ""}`}
+				>
+					<Option value="" />
+					{#each toolSelections as toolAndLabel}
+						<Option value={toolAndLabel}
+							>{toolAndLabel.label}</Option
+						>
+					{/each}
+				</Select>
+
+				<Set
+					chips={["White", "Grey", "Black"]}
+					let:chip
+					choice
+					selected="White"
+				>
+					<Chip {chip}>
+						<Text>{chip}</Text>
+					</Chip>
+				</Set>
+			</Content>
+		</Card>
+	</div>
 	<div class="division-setup-card">
 		<Card style="height: 100%">
 			<Content>
@@ -182,8 +228,8 @@
 <style>
 	#scope-box {
 		position: relative;
-		min-width: 600px;
-		min-height: 300px;
+		width: 100%;
+		height: 600px;
 	}
 
 	#division-setup {
@@ -192,11 +238,17 @@
 		align-items: stretch;
 		width: 100%;
 		gap: 10px;
+		margin-top: 10px;
 	}
 
 	#division-setup .division-setup-card {
 		flex-grow: 1;
 		flex: 1;
+	}
+
+	canvas {
+		width: 100%;
+		height: 100%;
 	}
 
 	canvas.button {

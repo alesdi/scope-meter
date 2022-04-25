@@ -1,11 +1,10 @@
+import type ScopeSetup from "$lib/ScopeSetup";
+import { DivisionRectangleTool, Tool } from "./tools";
+
 export abstract class ScopeBoxState {
     canvas: HTMLCanvasElement;
-    xDivImageSize: number | null = null;
-    yDivImageSize: number | null = null;
-    xDivPhysicalScale: number | null = null;
-    xDivPhysicalUnit: string | null = "";
-    yDivPhysicalScale: number | null = null;
-    yDivPhysicalUnit: string | null = "";
+    scopeSetup?: ScopeSetup;
+    tool?: Tool;
     retinaFactor = 2;
 
     get width() {
@@ -21,14 +20,20 @@ export abstract class ScopeBoxState {
 
     constructor({
         transition,
+        scopeSetup,
+        tool,
         updateDivisionSetup,
         canvas,
     }: {
         transition: (next: ScopeBoxState) => void,
+        scopeSetup?: ScopeSetup,
+        tool?: Tool,
         updateDivisionSetup: ({ x, y }: { x: number, y: number }) => void,
         canvas: HTMLCanvasElement,
     }) {
         this.transition = transition;
+        this.scopeSetup = scopeSetup;
+        this.tool = tool;
         this.updateDivisionSetup = updateDivisionSetup;
         this.canvas = canvas;
     }
@@ -64,14 +69,18 @@ export abstract class ScopeBoxState {
 export class ScopeBoxImagePickState extends ScopeBoxState {
     constructor({
         transition,
+        scopeSetup,
+        tool,
         updateDivisionSetup,
         canvas,
     }: {
         transition: (next: ScopeBoxState) => void,
+        scopeSetup?: ScopeSetup,
+        tool?: Tool,
         updateDivisionSetup: ({ x, y }: { x: number, y: number }) => void,
         canvas: HTMLCanvasElement,
     }) {
-        super({ transition, updateDivisionSetup, canvas });
+        super({ transition, scopeSetup, tool, updateDivisionSetup, canvas });
         this.render();
     }
 
@@ -120,6 +129,7 @@ export class ScopeBoxImagePickState extends ScopeBoxState {
                 this.render();
                 this.transition(new ScopeBoxRunState({
                     transition: this.transition,
+                    scopeSetup: this.scopeSetup,
                     canvas: this.canvas,
                     updateDivisionSetup: this.updateDivisionSetup,
                     image,
@@ -161,16 +171,20 @@ export class ScopeBoxRunState extends ScopeBoxState {
 
     constructor({
         transition,
+        scopeSetup,
+        tool,
         updateDivisionSetup,
         image,
         canvas,
     }: {
         transition: (next: ScopeBoxState) => void,
+        scopeSetup?: ScopeSetup,
+        tool?: Tool,
         updateDivisionSetup: ({ x, y }: { x: number, y: number }) => void,
         image: HTMLImageElement,
         canvas: HTMLCanvasElement,
     }) {
-        super({ transition, updateDivisionSetup, canvas });
+        super({ transition, scopeSetup, tool, updateDivisionSetup, canvas });
         this.image = image;
 
         // Compute image offset and scale to into canvas
@@ -197,6 +211,7 @@ export class ScopeBoxRunState extends ScopeBoxState {
                 this.render();
                 this.transition(new ScopeBoxRunState({
                     transition: this.transition,
+                    scopeSetup: this.scopeSetup,
                     canvas: this.canvas,
                     updateDivisionSetup: this.updateDivisionSetup,
                     image,
@@ -216,6 +231,7 @@ export class ScopeBoxRunState extends ScopeBoxState {
 
     render(): void {
         const ctx = this.canvas.getContext("2d");
+
         if (ctx) {
             ctx.clearRect(0, 0, this.width, this.height);
             ctx.save();
@@ -226,89 +242,16 @@ export class ScopeBoxRunState extends ScopeBoxState {
             ctx.scale(this.imageFitScale, this.imageFitScale);
             ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
 
-            if (this.mouseStart && this.mouse) {
-                const offset = 10;
-                ctx.strokeStyle = "white";
-
-                const topLeft = {
-                    x: Math.min(this.mouseStart.x, this.mouse.x),
-                    y: Math.min(this.mouseStart.y, this.mouse.y),
-                };
-
-                const bottomRight = {
-                    x: Math.max(this.mouseStart.x, this.mouse.x),
-                    y: Math.max(this.mouseStart.y, this.mouse.y),
-                };
-
-                const primaryGridDivisions = 10;
-                ctx.beginPath();
-                for (let i = 0; i < primaryGridDivisions; i++) {
-                    const x = topLeft.x + (bottomRight.x - topLeft.x) * i / primaryGridDivisions;
-                    const y = topLeft.y + (bottomRight.y - topLeft.y) * i / primaryGridDivisions;
-                    ctx.moveTo(x, topLeft.y);
-                    ctx.lineTo(x, bottomRight.y);
-                    ctx.moveTo(topLeft.x, y);
-                    ctx.lineTo(bottomRight.x, y);
-                }
-                ctx.closePath();
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(topLeft.x, 0);
-                ctx.lineTo(topLeft.x, this.image.height);
-
-                ctx.moveTo(bottomRight.x, 0);
-                ctx.lineTo(bottomRight.x, this.image.height);
-
-                ctx.moveTo(0, topLeft.y);
-                ctx.lineTo(this.image.width, topLeft.y);
-
-                ctx.moveTo(0, bottomRight.y);
-                ctx.lineTo(this.image.width, bottomRight.y);
-
-                ctx.closePath();
-                ctx.stroke();
-                ctx.closePath();
-                ctx.strokeStyle = "rgba(255, 255, 255, 1)";
-                ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-                ctx.stroke();
-                ctx.fill();
-
-                const fontSize = offset * 1.5;
-
-                ctx.font = `${fontSize}px sans-serif`;
-                ctx.fillStyle = "white";
-                ctx.textAlign = "center";
-
-                const width = bottomRight.x - topLeft.x;
-                const height = bottomRight.y - topLeft.y;
-
-                const xMeasure = (width / (this.xDivImageSize ?? 1) * (this.xDivPhysicalScale ?? 1));
-                const yMeasure = (height / (this.yDivImageSize ?? 1) * (this.yDivPhysicalScale ?? 1));
-
-                const xLabel = xMeasure.toFixed(2) + (this.xDivPhysicalUnit ?? "");
-                const yLabel = yMeasure.toFixed(2) + (this.yDivPhysicalUnit ?? "");
-
-                ctx.font = `${fontSize}px sans-serif`;
-                ctx.fillStyle = "white";
-                ctx.textAlign = "center";
-                ctx.fillText(xLabel, topLeft.x + width / 2, bottomRight.y + offset * 2);
-                ctx.textAlign = "left";
-                ctx.fillText(yLabel, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
-
-            } else if (this.mouse) {
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-                ctx.beginPath();
-                ctx.moveTo(this.mouse.x, 0);
-                ctx.lineTo(this.mouse.x, this.image.height);
-
-                ctx.moveTo(0, this.mouse.y);
-                ctx.lineTo(this.image.width, this.mouse.y);
-
-                ctx.closePath();
-                ctx.stroke();
+            if (this.mouse && this.scopeSetup && this.tool) {
+                this.tool.render(
+                    this.image,
+                    ctx,
+                    this.scopeSetup,
+                    this.mouse,
+                    this.mouseStart
+                )
             }
+
             ctx.restore();
         }
     }
@@ -343,6 +286,7 @@ export class ScopeBoxRunState extends ScopeBoxState {
         this.transition(
             new ScopeBoxDivSetupState({
                 transition: this.transition,
+                scopeSetup: this.scopeSetup,
                 canvas: this.canvas,
                 updateDivisionSetup: this.updateDivisionSetup,
                 image: this.image,
@@ -363,16 +307,18 @@ export class ScopeBoxDivSetupState extends ScopeBoxState {
 
     constructor({
         transition,
+        scopeSetup,
         updateDivisionSetup,
         image,
         canvas,
     }: {
         transition: (next: ScopeBoxState) => void,
+        scopeSetup?: ScopeSetup,
         updateDivisionSetup: ({ x, y }: { x: number, y: number }) => void,
         image: HTMLImageElement,
         canvas: HTMLCanvasElement,
     }) {
-        super({ transition, updateDivisionSetup, canvas });
+        super({ transition, scopeSetup, updateDivisionSetup, canvas });
         this.image = image;
 
         // Compute image offset and scale to into canvas
@@ -405,59 +351,17 @@ export class ScopeBoxDivSetupState extends ScopeBoxState {
 
             ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height);
 
-            if (this.mouseStart && this.mouse) {
-                const offset = 10;
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-
-                const topLeft = {
-                    x: Math.min(this.mouseStart.x, this.mouse.x),
-                    y: Math.min(this.mouseStart.y, this.mouse.y),
-                };
-
-                const bottomRight = {
-                    x: Math.max(this.mouseStart.x, this.mouse.x),
-                    y: Math.max(this.mouseStart.y, this.mouse.y),
-                };
-
-                ctx.beginPath();
-                ctx.moveTo(topLeft.x, 0);
-                ctx.lineTo(topLeft.x, this.image.height);
-
-                ctx.moveTo(bottomRight.x, 0);
-                ctx.lineTo(bottomRight.x, this.image.height);
-
-                ctx.moveTo(0, topLeft.y);
-                ctx.lineTo(this.image.width, topLeft.y);
-
-                ctx.moveTo(0, bottomRight.y);
-                ctx.lineTo(this.image.width, bottomRight.y);
-
-                ctx.closePath();
-                ctx.stroke();
-
-                const width = bottomRight.x - topLeft.x;
-                const height = bottomRight.y - topLeft.y;
-
-                const fontSize = offset * 1.5;
-
-                ctx.font = `${fontSize}px sans-serif`;
-                ctx.fillStyle = "white";
-                ctx.textAlign = "center";
-                ctx.fillText(`${width}px`, topLeft.x + width / 2, bottomRight.y + offset * 2);
-                ctx.textAlign = "left";
-                ctx.fillText(`${height}px`, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
-            } else if (this.mouse) {
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-                ctx.beginPath();
-                ctx.moveTo(this.mouse.x, 0);
-                ctx.lineTo(this.mouse.x, this.image.height);
-
-                ctx.moveTo(0, this.mouse.y);
-                ctx.lineTo(this.image.width, this.mouse.y);
-
-                ctx.closePath();
-                ctx.stroke();
+            if (this.mouse && this.scopeSetup) {
+                const tool = new DivisionRectangleTool();
+                tool.render(
+                    this.image,
+                    ctx,
+                    this.scopeSetup,
+                    this.mouse,
+                    this.mouseStart
+                );
             }
+
             ctx.restore();
         }
     }
@@ -493,6 +397,7 @@ export class ScopeBoxDivSetupState extends ScopeBoxState {
             this.transition(
                 new ScopeBoxRunState({
                     transition: this.transition,
+                    scopeSetup: this.scopeSetup,
                     canvas: this.canvas,
                     updateDivisionSetup: this.updateDivisionSetup,
                     image: this.image,
