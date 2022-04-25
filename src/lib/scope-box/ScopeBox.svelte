@@ -4,6 +4,12 @@
 	import Button, { Icon, Label } from "@smui/button";
 	import Card, { Content } from "@smui/card";
 	import Textfield from "@smui/textfield";
+	import { onMount } from "svelte";
+	import {
+		ScopeBoxImagePickState,
+		ScopeBoxRunState,
+		ScopeBoxState,
+	} from "./ScopeBoxState";
 
 	let xDivImageSize: number | null = null;
 	let yDivImageSize: number | null = null;
@@ -35,10 +41,27 @@
 	});
 
 	let canvas: HTMLCanvasElement;
-	let image: HTMLImageElement;
 
-	let imageSet = false; // false;
-	let divisionsSet = false;
+	let state: ScopeBoxState;
+
+	function onStateTransition(next: ScopeBoxState) {
+		state = next;
+	}
+
+	async function selectDivisionRectangle() {
+		(state as ScopeBoxRunState)?.selectDivisionRectangle();
+	}
+
+	onMount(async () => {
+		state = new ScopeBoxImagePickState({
+			transition: onStateTransition,
+			updateDivisionSetup: ({ x, y }: { x: number; y: number }) => {
+				xDivImageSize = x;
+				yDivImageSize = y;
+			},
+			canvas: canvas,
+		});
+	});
 
 	const siPrefixes = ["u", "µ", "m", "", "k", "M", "G"];
 	const siXUnits = ["s", "Hz"];
@@ -47,59 +70,25 @@
 	const autofillXUnits = siXUnits
 		.map((unit) => siPrefixes.map((prefix) => prefix + unit))
 		.flat();
+
 	const autofillYUnits = siYUnits
 		.map((unit) => siPrefixes.map((prefix) => prefix + unit))
 		.flat();
-
-	function render() {
-		const ctx = canvas.getContext("2d")!;
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-	}
-
-	function uploadFile(file: File) {
-		image = new Image();
-
-		const reader = new FileReader();
-		reader.onload = () => {
-			image.src = reader.result as string;
-			image.onload = () => {
-				imageSet = true;
-				render();
-			};
-		};
-		reader.readAsDataURL(file);
-	}
-
-	function dropHandler(event: DragEvent) {
-		event.preventDefault();
-		const file = (event.dataTransfer!.files as FileList)[0];
-		uploadFile(file);
-	}
-
-	function clickToUploadHandler(event: MouseEvent) {
-		const fileInput = document.createElement("input");
-		fileInput.type = "file";
-		fileInput.onchange = () => {
-			const file = (fileInput.files as FileList)[0];
-			uploadFile(file);
-		};
-		fileInput.click();
-	}
-
-	function dragEnterHandler(event: DragEvent) {
-		event.preventDefault();
-	}
 </script>
 
 <div id="scope-box">
-	<canvas bind:this={canvas} height={image?.height} width={image?.width} />
+	<canvas
+		bind:this={canvas}
+		on:mousedown={(event) => state?.handleMouseDown(event)}
+		on:mousemove={(event) => state?.handleMouseMove(event)}
+		on:mouseup={(event) => state?.handleMouseUp(event)}
+	/>
 	<div
 		id="drop-zone"
-		on:dragenter={dragEnterHandler}
-		on:drop={dropHandler}
-		on:click={clickToUploadHandler}
-		class={imageSet ? "hidden" : ""}
+		on:dragenter={(event) => state.dragEnterHandler(event)}
+		on:drop={(event) => state.dropHandler(event)}
+		on:click={(event) => state.clickToUploadHandler(event)}
+		class={state instanceof ScopeBoxImagePickState ? "" : "hidden"}
 	/>
 </div>
 
@@ -125,7 +114,7 @@
 					/>
 				</div>
 				<Button
-					on:click={() => {}}
+					on:click={selectDivisionRectangle}
 					variant="raised"
 					style="width: 100%; margin-top: 1em;"
 				>
