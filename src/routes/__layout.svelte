@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Header from '$lib/header/Header.svelte';
-	import '../app.css';
+	import Header from "$lib/header/Header.svelte";
+	import "../app.css";
 </script>
 
 <Header />
@@ -10,7 +10,11 @@
 </main>
 
 <footer>
-	<p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
+	<p>
+		This is an open source project. Hit me up on <a
+			href="https://github.com/alesdi/oscilloscope-meter">GitHub</a
+		> for feedback and contributing.
+	</p>
 </footer>
 
 <style>
