@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import Counter from "$lib/ScopeBox.svelte";
+	import Counter from "$lib/scope-box/ScopeBox.svelte";
 </script>
 
 <svelte:head>
@@ -12,16 +12,7 @@
 </svelte:head>
 
 <section>
-	<h1>
-		<div class="welcome">
-			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp" />
-				<img src="svelte-welcome.png" alt="Welcome" />
-			</picture>
-		</div>
-
-		to Scope Meter.
-	</h1>
+	<h1>This is Scope Meter.</h1>
 
 	<h2>
 		To begin, drag and drop a captured screenshot from your oscilloscope in
