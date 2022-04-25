@@ -40,6 +40,15 @@
 		yDivPhysicalUnit: yDivPhysicalUnit,
 	});
 
+	$: if (state) {
+		state.xDivImageSize = xDivImageSize;
+		state.yDivImageSize = yDivImageSize;
+		state.xDivPhysicalScale = xDivPhysicalScale;
+		state.xDivPhysicalUnit = xDivPhysicalUnit;
+		state.yDivPhysicalScale = yDivPhysicalScale;
+		state.yDivPhysicalUnit = yDivPhysicalUnit;
+	}
+
 	let canvas: HTMLCanvasElement;
 
 	let state: ScopeBoxState;
@@ -50,6 +59,14 @@
 
 	async function selectDivisionRectangle() {
 		(state as ScopeBoxRunState)?.selectDivisionRectangle();
+	}
+
+	function handleFileSelected(file: File) {
+		if (state instanceof ScopeBoxImagePickState) {
+			state.loadFile(file);
+		} else if (state instanceof ScopeBoxRunState) {
+			state.swapFile(file);
+		}
 	}
 
 	onMount(async () => {
@@ -82,13 +99,10 @@
 		on:mousedown={(event) => state?.handleMouseDown(event)}
 		on:mousemove={(event) => state?.handleMouseMove(event)}
 		on:mouseup={(event) => state?.handleMouseUp(event)}
-	/>
-	<div
-		id="drop-zone"
-		on:dragenter={(event) => state.dragEnterHandler(event)}
-		on:drop={(event) => state.dropHandler(event)}
-		on:click={(event) => state.clickToUploadHandler(event)}
-		class={state instanceof ScopeBoxImagePickState ? "" : "hidden"}
+		on:dragover={(event) => state?.dragOverHandler(event)}
+		on:drop={(event) => state?.dropHandler(event)}
+		on:click={() => state?.clickToUploadHandler()}
+		class={state instanceof ScopeBoxImagePickState ? "button" : ""}
 	/>
 </div>
 
@@ -170,37 +184,6 @@
 		position: relative;
 		min-width: 600px;
 		min-height: 300px;
-		background-color: var(--secondary-color);
-	}
-
-	#drop-zone {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		box-sizing: border-box;
-		border: 2px dashed var(--primary-color);
-		border-radius: 5px;
-		text-align: center;
-		font-size: 1em;
-		cursor: pointer;
-		color: var(--primary-color);
-	}
-
-	#drop-zone.hidden {
-		visibility: hidden;
-	}
-
-	#drop-zone:hover {
-		border-color: var(--primary-color);
-	}
-
-	#drop-zone::after {
-		content: "Drop an image here on click to select";
 	}
 
 	#division-setup {
@@ -214,5 +197,9 @@
 	#division-setup .division-setup-card {
 		flex-grow: 1;
 		flex: 1;
+	}
+
+	canvas.button {
+		cursor: pointer;
 	}
 </style>

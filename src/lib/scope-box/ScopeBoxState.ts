@@ -1,5 +1,12 @@
 export abstract class ScopeBoxState {
     canvas: HTMLCanvasElement;
+    xDivImageSize: number | null = null;
+    yDivImageSize: number | null = null;
+    xDivPhysicalScale: number | null = null;
+    xDivPhysicalUnit: string | null = "";
+    yDivPhysicalScale: number | null = null;
+    yDivPhysicalUnit: string | null = "";
+
     transition: (next: ScopeBoxState) => void;
     updateDivisionSetup: ({ x, y }: { x: number, y: number }) => void;
 
@@ -17,18 +24,6 @@ export abstract class ScopeBoxState {
         this.canvas = canvas;
     }
 
-    dropHandler(event: MouseEvent): void {
-        event.preventDefault();
-    }
-
-    clickToUploadHandler(event: MouseEvent): void {
-        event.preventDefault();
-    }
-
-    dragEnterHandler(event: MouseEvent): void {
-        event.preventDefault();
-    }
-
     handleMouseDown(event: MouseEvent): void {
         event.preventDefault();
     }
@@ -41,15 +36,69 @@ export abstract class ScopeBoxState {
         event.preventDefault();
     }
 
+
+    dropHandler(event: DragEvent) {
+        event.preventDefault();
+    }
+
+    clickToUploadHandler() {
+        //
+    }
+
+    dragOverHandler(event: DragEvent) {
+        event.preventDefault();
+    }
+
     abstract render(): void;
 }
 
 export class ScopeBoxImagePickState extends ScopeBoxState {
-    render(): void {
-        console.log();
+    constructor({
+        transition,
+        updateDivisionSetup,
+        canvas,
+    }: {
+        transition: (next: ScopeBoxState) => void,
+        updateDivisionSetup: ({ x, y }: { x: number, y: number }) => void,
+        canvas: HTMLCanvasElement,
+    }) {
+        super({ transition, updateDivisionSetup, canvas });
+        this.render();
     }
 
-    private uploadFile(file: File) {
+    render(): void {
+        if (this.canvas.parentElement) {
+            this.canvas.width = this.canvas.parentElement.offsetWidth;
+            this.canvas.height = this.canvas.parentElement.offsetHeight;
+        }
+
+        const ctx = this.canvas.getContext("2d");
+        if (ctx) {
+            const fontSize = 15
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.font = `${fontSize}px sans-serif`;
+            ctx.fillStyle = "grey";
+            ctx.textAlign = "center";
+            ctx.fillText(
+                "Drag or click to upload an oscilloscope screenshot",
+                this.canvas.width / 2,
+                this.canvas.height / 2 + fontSize / 2,
+            );
+            const frameOffset = 20;
+            ctx.strokeStyle = "grey";
+            ctx.setLineDash([frameOffset, frameOffset]);
+            ctx.lineWidth = 2;
+
+            ctx.strokeRect(
+                frameOffset,
+                frameOffset,
+                this.canvas.width - frameOffset * 2,
+                this.canvas.height - frameOffset * 2,
+            );
+        }
+    }
+
+    loadFile(file: File) {
         const image = new Image();
 
         const reader = new FileReader();
@@ -72,7 +121,7 @@ export class ScopeBoxImagePickState extends ScopeBoxState {
         event.preventDefault();
         if (event.dataTransfer) {
             const file = (event.dataTransfer.files as FileList)[0];
-            this.uploadFile(file);
+            this.loadFile(file);
         }
     }
 
@@ -81,13 +130,9 @@ export class ScopeBoxImagePickState extends ScopeBoxState {
         fileInput.type = "file";
         fileInput.onchange = () => {
             const file = (fileInput.files as FileList)[0];
-            this.uploadFile(file);
+            this.loadFile(file);
         };
         fileInput.click();
-    }
-
-    dragEnterHandler(event: DragEvent) {
-        event.preventDefault();
     }
 }
 
@@ -113,6 +158,33 @@ export class ScopeBoxRunState extends ScopeBoxState {
         this.canvas.width = image.width;
         this.canvas.height = image.height;
         this.render();
+    }
+
+    swapFile(file: File) {
+        const image = new Image();
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            image.src = reader.result as string;
+            image.onload = () => {
+                this.render();
+                this.transition(new ScopeBoxRunState({
+                    transition: this.transition,
+                    canvas: this.canvas,
+                    updateDivisionSetup: this.updateDivisionSetup,
+                    image,
+                }))
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    dropHandler(event: DragEvent) {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            const file = (event.dataTransfer.files as FileList)[0];
+            this.swapFile(file);
+        }
     }
 
     render(): void {
@@ -169,6 +241,29 @@ export class ScopeBoxRunState extends ScopeBoxState {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
                 ctx.stroke();
                 ctx.fill();
+
+                const fontSize = offset * 1.5;
+
+                ctx.font = `${fontSize}px sans-serif`;
+                ctx.fillStyle = "white";
+                ctx.textAlign = "center";
+
+                const width = bottomRight.x - topLeft.x;
+                const height = bottomRight.y - topLeft.y;
+
+                const xMeasure = (width / (this.xDivImageSize ?? 1) * (this.xDivPhysicalScale ?? 1));
+                const yMeasure = (height / (this.yDivImageSize ?? 1) * (this.yDivPhysicalScale ?? 1));
+
+                const xLabel = xMeasure.toFixed(2) + (this.yDivPhysicalUnit ?? "");
+                const yLabel = yMeasure.toFixed(2) + (this.xDivPhysicalUnit ?? "");
+
+                ctx.font = `${fontSize}px sans-serif`;
+                ctx.fillStyle = "white";
+                ctx.textAlign = "center";
+                ctx.fillText(xLabel, topLeft.x + width / 2, bottomRight.y + offset * 2);
+                ctx.textAlign = "left";
+                ctx.fillText(yLabel, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
+
             } else if (this.mouse) {
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
                 ctx.beginPath();

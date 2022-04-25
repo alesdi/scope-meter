@@ -1,5 +1,5 @@
 import { browser } from "$app/env";
-import type ScopeSetup from "$lib/scope-box/ScopeSetup";
+import type ScopeSetup from "$lib/ScopeSetup";
 import { writable } from "svelte/store";
 
 const storedScopeSetup = JSON.parse(browser && localStorage.getItem("scope-setup") || "{}");
