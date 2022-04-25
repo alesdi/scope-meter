@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import Counter from '$lib/Counter.svelte';
+	import Counter from "$lib/ScopeBox.svelte";
 </script>
 
 <svelte:head>
@@ -20,11 +20,12 @@
 			</picture>
 		</div>
 
-		to your new<br />SvelteKit app
+		to Scope Meter.
 	</h1>
 
 	<h2>
-		try editing <strong>src/routes/index.svelte</strong>
+		To begin, drag and drop a captured screenshot from your oscilloscope in
+		the box below.
 	</h2>
 
 	<Counter />

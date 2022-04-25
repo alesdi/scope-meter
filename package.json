@@ -1,34 +1,42 @@
 {
-  "name": "scope-meter",
-  "version": "0.0.1",
-  "scripts": {
-    "dev": "svelte-kit dev",
-    "build": "svelte-kit build",
-    "package": "svelte-kit package",
-    "preview": "svelte-kit preview",
-    "prepare": "svelte-kit sync",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
-    "lint": "eslint --ignore-path .gitignore ."
-  },
-  "devDependencies": {
-    "@sveltejs/adapter-auto": "next",
-    "@sveltejs/kit": "next",
-    "@types/cookie": "^0.4.1",
-    "@typescript-eslint/eslint-plugin": "^5.10.1",
-    "@typescript-eslint/parser": "^5.10.1",
-    "eslint": "^7.32.0",
-    "eslint-plugin-svelte3": "^3.2.1",
-    "svelte": "^3.46.0",
-    "svelte-check": "^2.2.6",
-    "svelte-preprocess": "^4.10.1",
-    "tslib": "^2.3.1",
-    "typescript": "~4.6.2"
-  },
-  "type": "module",
-  "dependencies": {
-    "@fontsource/fira-mono": "^4.5.0",
-    "@lukeed/uuid": "^2.0.0",
-    "cookie": "^0.4.1"
-  }
+	"name": "scope-meter",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "svelte-kit dev",
+		"build": "svelte-kit build",
+		"package": "svelte-kit package",
+		"preview": "svelte-kit preview",
+		"check": "svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "eslint --ignore-path .gitignore .",
+		"prepare": "svelte-kit sync && npm run smui-theme-light && npm run smui-theme-dark",
+		"smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
+		"smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.17.9",
+		"@smui-extra/autocomplete": "^6.0.0-beta.16",
+		"@smui/textfield": "^6.0.0-beta.16",
+		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/kit": "next",
+		"@types/cookie": "^0.4.1",
+		"@typescript-eslint/eslint-plugin": "^5.10.1",
+		"@typescript-eslint/parser": "^5.10.1",
+		"babel-loader": "^8.2.5",
+		"eslint": "^7.32.0",
+		"eslint-plugin-svelte3": "^3.2.1",
+		"smui-theme": "^6.0.0-beta.16",
+		"svelte": "^3.47.0",
+		"svelte-check": "^2.2.6",
+		"svelte-loader": "^3.1.2",
+		"svelte-preprocess": "^4.10.6",
+		"tslib": "^2.3.1",
+		"typescript": "~4.6.2"
+	},
+	"type": "module",
+	"dependencies": {
+		"@fontsource/fira-mono": "^4.5.8",
+		"@lukeed/uuid": "^2.0.0",
+		"cookie": "^0.4.1"
+	}
 }
