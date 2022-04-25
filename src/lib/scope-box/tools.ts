@@ -142,8 +142,8 @@ export class DivisionRectangleTool extends Tool {
             ctx.closePath();
             ctx.stroke();
 
-            const width = bottomRight.x - topLeft.x;
-            const height = bottomRight.y - topLeft.y;
+            const width = Math.round(bottomRight.x - topLeft.x);
+            const height = Math.round(bottomRight.y - topLeft.y);
 
             const fontSize = offset * 1.5;
 
