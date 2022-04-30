@@ -7,12 +7,12 @@
 	import Select, { Option } from "@smui/select";
 	import Textfield from "@smui/textfield";
 	import { onMount } from "svelte";
-	import {
-		ScopeBoxImagePickState,
-		ScopeBoxRunState,
-		ScopeBoxState,
-	} from "./ScopeBoxState";
-	import { SimpleRectangleTool, TimeConstantTool, Tool } from "./tools";
+	import ScopeBoxImagePickState from "./states/ScopeBoxImagePickState";
+	import type ScopeBoxRunState from "./states/ScopeBoxRunState";
+	import type { ScopeBoxState } from "./states/ScopeBoxState";
+	import SimpleRectangleTool from "./tools/SimpleRectangleTool";
+	import TimeConstantTool from "./tools/TimeConstantTool";
+	import type Tool from "./tools/Tool";
 
 	let xDivImageSize: number | null = null;
 	let yDivImageSize: number | null = null;
@@ -107,6 +107,7 @@
 </script>
 
 <div id="scope-box">
+	<!-- svelte-ignore missing-declaration -->
 	<canvas
 		bind:this={canvas}
 		on:mousedown={(event) => state?.handleMouseDown(event)}
