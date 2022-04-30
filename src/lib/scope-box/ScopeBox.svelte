@@ -27,8 +27,6 @@
 	};
 
 	scopeSetup.subscribe((value) => {
-		console.log("scopeSetup loaded");
-		console.log(value);
 		if (value != null) {
 			xDivImageSize = value.xDivImageSize ?? null;
 			yDivImageSize = value.yDivImageSize ?? null;
