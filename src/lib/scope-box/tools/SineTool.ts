@@ -1,10 +1,12 @@
 import type ScopeSetup from "$lib/ScopeSetup";
+import { getInverseSiUnit, parseSiUnit, renderSi } from "$lib/utilities/si";
 import Tool from "./Tool";
 
 
-export default class TimeConstantTool extends Tool {
+export default class SineTool extends Tool {
     constructor(
         private readonly length: number = 1,
+        private readonly shift: number = 0,
     ) {
         super();
     }
@@ -30,10 +32,9 @@ export default class TimeConstantTool extends Tool {
                 y: Math.max(mouseStart.y, mouse.y),
             };
 
-            // TODO: In an exponential curve it would make much more sense to use a variable step size.
             const xStep = Math.min(1, Math.max(10, (bottomRight.x - topLeft.x) / 100));
 
-            const timeConstant = (mouse.x - mouseStart.x) / this.length;
+            const period = Math.abs((mouse.x - mouseStart.x) / this.length);
 
             ctx.beginPath();
             ctx.moveTo(topLeft.x, 0);
@@ -42,31 +43,45 @@ export default class TimeConstantTool extends Tool {
             ctx.moveTo(bottomRight.x, 0);
             ctx.lineTo(bottomRight.x, image.height);
 
-            ctx.moveTo(mouseStart.x + timeConstant, 0);
-            ctx.lineTo(mouseStart.x + timeConstant, image.height);
-
             ctx.moveTo(0, topLeft.y);
             ctx.lineTo(image.width, topLeft.y);
 
             ctx.moveTo(0, bottomRight.y);
             ctx.lineTo(image.width, bottomRight.y);
 
-            ctx.moveTo(mouseStart.x + timeConstant, mouse.y);
-            ctx.lineTo(mouseStart.x, mouseStart.y);
+            ctx.moveTo(0, topLeft.y);
 
-            ctx.moveTo(topLeft.x, topLeft.y);
-
-
-            let x = topLeft.x;
-            while (x < image.width) {
-                const y = mouse.y - Math.exp(-(x - mouseStart.x) / timeConstant) * (mouse.y - mouseStart.y);
-                if (isFinite(y) && isFinite(x)) {
-                    ctx.lineTo(x, y);
-                }
-                x += xStep;
-            }
             ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
             ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.stroke();
+            ctx.closePath();
+
+            if (period > 10 * xStep) {
+                ctx.beginPath();
+                let x = 0;
+                let periodNumber = 0;
+                while (x < image.width) {
+                    const y = mouse.y
+                        - (mouse.y - mouseStart.y) / 2
+                        - Math.sin(-(x - mouseStart.x) / period * Math.PI + this.shift)
+                        * ((mouse.y - mouseStart.y) / 2);
+
+                    if (isFinite(y) && isFinite(x)) {
+                        ctx.lineTo(x, y);
+                    }
+
+                    if (x > periodNumber * period + mouseStart.x % period) {
+                        ctx.moveTo(mouseStart.x % period + periodNumber * period, mouseStart.y);
+                        ctx.lineTo(mouseStart.x % period + periodNumber * period, mouse.y);
+                        periodNumber++;
+
+                        ctx.moveTo(x, y);
+                    }
+
+                    x += xStep;
+                }
+            }
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
             ctx.stroke();
             ctx.closePath();
 
@@ -82,13 +97,28 @@ export default class TimeConstantTool extends Tool {
             const xMeasure = (width / (scopeSetup.xDivImageSize ?? 1) * (scopeSetup.xDivPhysicalScale ?? 1)) / this.length;
             const yMeasure = (height / (scopeSetup.yDivImageSize ?? 1) * (scopeSetup.yDivPhysicalScale ?? 1));
 
-            const xLabel = "\u03C4 = " + this.renderXLabel(xMeasure, scopeSetup);
+            const periodLabel = "T = " + this.renderXLabel(xMeasure, scopeSetup);
+
+            let frequencyLabel: string | undefined;
+            const xParsedSiUnit = parseSiUnit(scopeSetup.xDivPhysicalUnit ?? "");
+            if (xParsedSiUnit) {
+                const inverseUnit = getInverseSiUnit(xParsedSiUnit.unit);
+                const renderedSi = renderSi(1 / (xMeasure * xParsedSiUnit.factor), inverseUnit);
+
+                if (isFinite(renderedSi.value)) {
+                    frequencyLabel = "f = " + renderedSi.value.toPrecision(3) + renderedSi.unit;
+                }
+            }
+
             const yLabel = this.renderYLabel(yMeasure, scopeSetup);
 
             ctx.font = `${fontSize}px sans-serif`;
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
-            ctx.fillText(xLabel, topLeft.x + width / 2, bottomRight.y + offset * 2);
+            ctx.fillText(periodLabel, topLeft.x + width / 2, bottomRight.y + offset * 2);
+            if (frequencyLabel) {
+                ctx.fillText(frequencyLabel, topLeft.x + width / 2, fontSize * 1.5 + bottomRight.y + offset * 2);
+            }
             ctx.textAlign = "left";
             ctx.fillText(yLabel, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
 

@@ -71,8 +71,8 @@ export default class SimpleRectangleTool extends Tool {
             const xMeasure = (width / (scopeSetup.xDivImageSize ?? 1) * (scopeSetup.xDivPhysicalScale ?? 1));
             const yMeasure = (height / (scopeSetup.yDivImageSize ?? 1) * (scopeSetup.yDivPhysicalScale ?? 1));
 
-            const xLabel = xMeasure.toFixed(2) + (scopeSetup.xDivPhysicalUnit ?? "");
-            const yLabel = yMeasure.toFixed(2) + (scopeSetup.yDivPhysicalUnit ?? "");
+            const xLabel = this.renderXLabel(xMeasure, scopeSetup);
+            const yLabel = this.renderYLabel(yMeasure, scopeSetup);
 
             ctx.font = `${fontSize}px sans-serif`;
             ctx.fillStyle = "white";

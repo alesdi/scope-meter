@@ -11,6 +11,7 @@
 	import type ScopeBoxRunState from "./states/ScopeBoxRunState";
 	import type { ScopeBoxState } from "./states/ScopeBoxState";
 	import SimpleRectangleTool from "./tools/SimpleRectangleTool";
+	import SineTool from "./tools/SineTool";
 	import TimeConstantTool from "./tools/TimeConstantTool";
 	import type Tool from "./tools/Tool";
 
@@ -84,6 +85,17 @@
 			},
 			canvas: canvas,
 		});
+
+		const onWindowResize = () => {
+			state.updateCanvasSize();
+			state.render();
+		};
+
+		window.addEventListener("resize", onWindowResize);
+
+		return () => {
+			window.removeEventListener("resize", onWindowResize);
+		};
 	});
 
 	const siPrefixes = ["u", "µ", "m", "", "k", "M", "G"];
@@ -99,9 +111,16 @@
 		.flat();
 
 	const toolSelections = [
-		{ label: "Simple rectangle", tool: new SimpleRectangleTool() },
-		{ label: "Time constant", tool: new TimeConstantTool() },
+		{ label: "Rectangle", tool: new SimpleRectangleTool() },
+		{ label: "Time constant (1τ)", tool: new TimeConstantTool() },
+		{ label: "Time constant (5τ)", tool: new TimeConstantTool(5) },
+		{ label: "Sine (half wave)", tool: new SineTool() },
+		{ label: "Sine (2 waves)", tool: new SineTool(4) },
+		{ label: "Cosine (half wave)", tool: new SineTool(1, Math.PI / 2) },
+		{ label: "Cosine (2 waves)", tool: new SineTool(4, Math.PI / 2) },
 	];
+
+	toolSelection = toolSelections[0];
 </script>
 
 <div id="scope-box">

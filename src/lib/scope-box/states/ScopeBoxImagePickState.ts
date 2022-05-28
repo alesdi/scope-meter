@@ -15,19 +15,14 @@ export default class ScopeBoxImagePickState extends ScopeBoxState {
         canvas: HTMLCanvasElement;
     }) {
         super({ transition, scopeSetup, tool, updateDivisionSetup, canvas });
+        this.updateCanvasSize();
         this.render();
     }
 
     render(): void {
-        if (this.canvas.parentElement) {
-            this.canvas.width = this.canvas.parentElement.offsetWidth * 2;
-            this.canvas.height = this.canvas.parentElement.offsetHeight * 2;
-        }
-
         const ctx = this.canvas.getContext("2d");
         if (ctx) {
             const fontSize = 15;
-            ctx.scale(2, 2);
             ctx.save();
             ctx.clearRect(0, 0, this.width, this.height);
             ctx.font = `${fontSize}px sans-serif`;
@@ -60,6 +55,7 @@ export default class ScopeBoxImagePickState extends ScopeBoxState {
         reader.onload = () => {
             image.src = reader.result as string;
             image.onload = () => {
+                this.updateCanvasSize();
                 this.render();
                 this.transition(new ScopeBoxRunState({
                     transition: this.transition,

@@ -38,6 +38,14 @@ export abstract class ScopeBoxState {
         this.canvas = canvas;
     }
 
+    updateCanvasSize() {
+        if (this.canvas.parentElement) {
+            this.canvas.width = this.canvas.parentElement.offsetWidth * this.retinaFactor;
+            this.canvas.height = this.canvas.parentElement.offsetHeight * this.retinaFactor;
+            this.canvas.getContext("2d")?.scale(this.retinaFactor, this.retinaFactor);
+        }
+    }
+
     handleMouseDown(event: MouseEvent): void {
         event.preventDefault();
     }
