@@ -3,7 +3,6 @@
 	import Autocomplete from "@smui-extra/autocomplete";
 	import Button, { Icon, Label } from "@smui/button";
 	import Card, { Content } from "@smui/card";
-	import Chip, { Set, Text } from "@smui/chips";
 	import Select, { Option } from "@smui/select";
 	import Textfield from "@smui/textfield";
 	import { onMount } from "svelte";
@@ -157,17 +156,6 @@
 						>
 					{/each}
 				</Select>
-
-				<Set
-					chips={["White", "Grey", "Black"]}
-					let:chip
-					choice
-					selected="White"
-				>
-					<Chip {chip}>
-						<Text>{chip}</Text>
-					</Chip>
-				</Set>
 			</Content>
 		</Card>
 	</div>
