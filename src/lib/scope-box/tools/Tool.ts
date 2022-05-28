@@ -23,7 +23,7 @@ export default abstract class Tool {
             xUnit = xRenderedSi.unit;
         }
 
-        return value.toPrecision(3) + xUnit;
+        return value.toPrecision(3) + " " + xUnit;
     }
 
     renderYLabel(value: number, scopeSetup: ScopeSetup): string {
@@ -39,7 +39,7 @@ export default abstract class Tool {
             yUnit = yRenderedSi.unit;
         }
 
-        return value.toPrecision(3) + yUnit;
+        return value.toPrecision(3) + " " + yUnit;
     }
 }
 

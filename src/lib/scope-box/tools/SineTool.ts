@@ -106,7 +106,7 @@ export default class SineTool extends Tool {
                 const renderedSi = renderSi(1 / (xMeasure * xParsedSiUnit.factor), inverseUnit);
 
                 if (isFinite(renderedSi.value)) {
-                    frequencyLabel = "f = " + renderedSi.value.toPrecision(3) + renderedSi.unit;
+                    frequencyLabel = "f = " + renderedSi.value.toPrecision(3) + " " + renderedSi.unit;
                 }
             }
 
