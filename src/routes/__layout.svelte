@@ -9,7 +9,7 @@
 <footer>
 	<p>
 		This is an open source project. Hit me up on <a
-			href="https://github.com/alesdi/oscilloscope-meter">GitHub</a
+			href="https://github.com/alesdi/scope-meter">GitHub</a
 		> for feedback and contributing.
 	</p>
 </footer>
