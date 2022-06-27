@@ -51,8 +51,8 @@ export default class SineTool extends Tool {
 
             ctx.moveTo(0, topLeft.y);
 
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.strokeStyle = "rgba(200, 200, 200, 0.5)";
+            ctx.fillStyle = "rgba(200, 200, 200, 0.1)";
             ctx.stroke();
             ctx.closePath();
 
@@ -81,7 +81,7 @@ export default class SineTool extends Tool {
                     x += xStep;
                 }
             }
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.strokeStyle = "rgba(200, 200, 200, 0.3)";
             ctx.stroke();
             ctx.closePath();
 
@@ -123,7 +123,7 @@ export default class SineTool extends Tool {
             ctx.fillText(yLabel, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
 
         } else if (mouse) {
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.strokeStyle = "rgba(200, 200, 200, 0.2)";
             ctx.beginPath();
             ctx.moveTo(mouse.x, 0);
             ctx.lineTo(mouse.x, image.height);

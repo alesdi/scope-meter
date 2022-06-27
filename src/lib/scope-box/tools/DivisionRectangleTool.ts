@@ -12,7 +12,7 @@ export default class DivisionRectangleTool extends Tool {
     ) {
         if (mouseStart && mouse) {
             const offset = 10;
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+            ctx.strokeStyle = "rgba(200, 200, 200, 0.4)";
 
             const topLeft = {
                 x: Math.min(mouseStart.x, mouse.x),
@@ -52,7 +52,7 @@ export default class DivisionRectangleTool extends Tool {
             ctx.textAlign = "left";
             ctx.fillText(`${height}px`, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
         } else if (mouse) {
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.strokeStyle = "rgba(200, 200, 200, 0.2)";
             ctx.beginPath();
             ctx.moveTo(mouse.x, 0);
             ctx.lineTo(mouse.x, image.height);
