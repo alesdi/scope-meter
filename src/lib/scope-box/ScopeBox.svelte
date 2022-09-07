@@ -14,6 +14,24 @@
 	import TimeConstantTool from "./tools/TimeConstantTool";
 	import type Tool from "./tools/Tool";
 
+	const toolSelections = [
+		{ label: "Rectangle", tool: new SimpleRectangleTool() },
+		{ label: "Time constant (1τ)", tool: new TimeConstantTool() },
+		{ label: "Time constant (5τ)", tool: new TimeConstantTool(5) },
+		{ label: "Sine (half wave)", tool: new SineTool() },
+		{ label: "Sine (2 waves)", tool: new SineTool(4) },
+		{ label: "Cosine (half wave)", tool: new SineTool(1, Math.PI / 2) },
+		{ label: "Cosine (2 waves)", tool: new SineTool(4, Math.PI / 2) },
+	];
+
+	const colorSelections: {
+		label: string;
+		color: [number, number, number];
+	}[] = [
+		{ label: "Black", color: [35, 35, 35] },
+		{ label: "White", color: [220, 220, 220] },
+	];
+
 	let xDivImageSize: number | null = null;
 	let yDivImageSize: number | null = null;
 	let xDivPhysicalScale: number | null = null;
@@ -26,6 +44,11 @@
 		tool: Tool;
 	};
 
+	let colorSelection: {
+		label: string;
+		color: [number, number, number];
+	} | null;
+
 	scopeSetup.subscribe((value) => {
 		if (value != null) {
 			xDivImageSize = value.xDivImageSize ?? null;
@@ -34,6 +57,11 @@
 			xDivPhysicalUnit = value.xDivPhysicalUnit ?? null;
 			yDivPhysicalScale = value.yDivPhysicalScale ?? null;
 			yDivPhysicalUnit = value.yDivPhysicalUnit ?? null;
+			colorSelection =
+				colorSelections.find(
+					(selection) =>
+						selection.label === value.colorSelection?.label
+				) ?? null;
 		}
 	});
 
@@ -45,6 +73,7 @@
 			xDivPhysicalUnit: xDivPhysicalUnit,
 			yDivPhysicalScale: yDivPhysicalScale,
 			yDivPhysicalUnit: yDivPhysicalUnit,
+			colorSelection: colorSelection,
 		});
 
 		if (state) {
@@ -55,6 +84,7 @@
 				xDivPhysicalUnit: xDivPhysicalUnit,
 				yDivPhysicalScale: yDivPhysicalScale,
 				yDivPhysicalUnit: yDivPhysicalUnit,
+				colorSelection: colorSelection,
 			};
 		}
 	}
@@ -109,16 +139,6 @@
 		.map((unit) => siPrefixes.map((prefix) => prefix + unit))
 		.flat();
 
-	const toolSelections = [
-		{ label: "Rectangle", tool: new SimpleRectangleTool() },
-		{ label: "Time constant (1τ)", tool: new TimeConstantTool() },
-		{ label: "Time constant (5τ)", tool: new TimeConstantTool(5) },
-		{ label: "Sine (half wave)", tool: new SineTool() },
-		{ label: "Sine (2 waves)", tool: new SineTool(4) },
-		{ label: "Cosine (half wave)", tool: new SineTool(1, Math.PI / 2) },
-		{ label: "Cosine (2 waves)", tool: new SineTool(4, Math.PI / 2) },
-	];
-
 	toolSelection = toolSelections[0];
 </script>
 
@@ -153,6 +173,21 @@
 					{#each toolSelections as toolAndLabel}
 						<Option value={toolAndLabel}
 							>{toolAndLabel.label}</Option
+						>
+					{/each}
+				</Select>
+				<Select
+					variant="filled"
+					label="Color"
+					style="width: 100%"
+					bind:value={colorSelection}
+					key={(colorSelection) =>
+						`${(colorSelection && colorSelection.label) || ""}`}
+				>
+					<Option value="" />
+					{#each colorSelections as colorSelection}
+						<Option value={colorSelection}
+							>{colorSelection.label}</Option
 						>
 					{/each}
 				</Select>

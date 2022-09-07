@@ -12,7 +12,7 @@ export default class SimpleRectangleTool extends Tool {
     ) {
         if (mouseStart && mouse) {
             const offset = 10;
-            ctx.strokeStyle = "white";
+            ctx.strokeStyle = this.colorShade(scopeSetup.colorSelection?.color, 1);
 
             const topLeft = {
                 x: Math.min(mouseStart.x, mouse.x),
@@ -35,7 +35,7 @@ export default class SimpleRectangleTool extends Tool {
                 ctx.lineTo(bottomRight.x, y);
             }
             ctx.closePath();
-            ctx.strokeStyle = "rgba(200, 200, 200, 0.1)";
+            ctx.strokeStyle = this.colorShade(scopeSetup.colorSelection?.color, 0.1);
             ctx.stroke();
 
             ctx.beginPath();
@@ -54,15 +54,15 @@ export default class SimpleRectangleTool extends Tool {
             ctx.closePath();
             ctx.stroke();
             ctx.closePath();
-            ctx.strokeStyle = "rgba(200, 200, 200, 1)";
-            ctx.fillStyle = "rgba(200, 200, 200, 0.1)";
+            ctx.strokeStyle = this.colorShade(scopeSetup.colorSelection?.color, 1);
+            ctx.fillStyle = this.colorShade(scopeSetup.colorSelection?.color, 0.1);
             ctx.stroke();
             ctx.fill();
 
             const fontSize = offset * 1.5;
 
             ctx.font = `${fontSize}px sans-serif`;
-            ctx.fillStyle = "white";
+            ctx.fillStyle = this.colorShade(scopeSetup.colorSelection?.color, 1);
             ctx.textAlign = "center";
 
             const width = bottomRight.x - topLeft.x;
@@ -75,14 +75,14 @@ export default class SimpleRectangleTool extends Tool {
             const yLabel = this.renderYLabel(yMeasure, scopeSetup);
 
             ctx.font = `${fontSize}px sans-serif`;
-            ctx.fillStyle = "white";
+            ctx.fillStyle = this.colorShade(scopeSetup.colorSelection?.color, 1);
             ctx.textAlign = "center";
             ctx.fillText(xLabel, topLeft.x + width / 2, bottomRight.y + offset * 2);
             ctx.textAlign = "left";
             ctx.fillText(yLabel, bottomRight.x + offset, topLeft.y + height / 2 + fontSize / 2);
 
         } else if (mouse) {
-            ctx.strokeStyle = "rgba(200, 200, 200, 0.2)";
+            ctx.strokeStyle = this.colorShade(scopeSetup.colorSelection?.color, 0.2);
             ctx.beginPath();
             ctx.moveTo(mouse.x, 0);
             ctx.lineTo(mouse.x, image.height);

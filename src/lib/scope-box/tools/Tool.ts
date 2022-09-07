@@ -10,6 +10,10 @@ export default abstract class Tool {
         mouseStart?: { x: number, y: number }
     ): void;
 
+    protected colorShade(color: [number, number, number] = [0, 0, 0], alpha: number): string {
+        return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
+    }
+
     renderXLabel(value: number, scopeSetup: ScopeSetup): string {
         let xUnit = (scopeSetup.xDivPhysicalUnit ?? "");
         const xParsedSiUnit = parseSiUnit(xUnit);
