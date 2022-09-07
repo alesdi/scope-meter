@@ -47,7 +47,7 @@
 	let colorSelection: {
 		label: string;
 		color: [number, number, number];
-	} | null;
+	} = colorSelections[0];
 
 	scopeSetup.subscribe((value) => {
 		if (value != null) {
@@ -57,11 +57,12 @@
 			xDivPhysicalUnit = value.xDivPhysicalUnit ?? null;
 			yDivPhysicalScale = value.yDivPhysicalScale ?? null;
 			yDivPhysicalUnit = value.yDivPhysicalUnit ?? null;
-			colorSelection =
-				colorSelections.find(
-					(selection) =>
-						selection.label === value.colorSelection?.label
-				) ?? null;
+			const selectedColorSelection = colorSelections.find(
+				(selection) => selection.label === value.colorSelection?.label
+			);
+			if (selectedColorSelection != null) {
+				colorSelection = selectedColorSelection;
+			}
 		}
 	});
 
@@ -169,7 +170,6 @@
 					key={(toolSelection) =>
 						`${(toolSelection && toolSelection.label) || ""}`}
 				>
-					<Option value="" />
 					{#each toolSelections as toolAndLabel}
 						<Option value={toolAndLabel}
 							>{toolAndLabel.label}</Option
@@ -184,7 +184,6 @@
 					key={(colorSelection) =>
 						`${(colorSelection && colorSelection.label) || ""}`}
 				>
-					<Option value="" />
 					{#each colorSelections as colorSelection}
 						<Option value={colorSelection}
 							>{colorSelection.label}</Option
